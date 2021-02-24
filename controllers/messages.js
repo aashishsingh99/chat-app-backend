@@ -171,29 +171,6 @@ exports.delete = async (req, res) => {
       type,
       text,
     });
-
-    // console.log("i am new event delete")
-    // console.log(req.user.id)
-    // const query = { messageId: messageId,type:type};
-    // const update = {
-    //   $set: {
-
-    //     text: "This message is deleted",
-    //     type: "DELETE"
-    //   }
-    // };
-    //const options = { returnNewDocument: true };
-
-    // await Event.findOneAndUpdate(query,update,{new: true},function(err,docs){
-    //   if(err)
-    //   {
-    //     console.log(err+"error hai")
-    //   }
-    //   else{
-    //     console.log(docs);
-    //   }
-    // });
-
     await Event.findOneAndUpdate(
       { messageId, type, chatRoomId },
       {
@@ -202,25 +179,56 @@ exports.delete = async (req, res) => {
       },
       { new: true }
     );
-    // const e="DELETE"
-
-    //     const def = await Event.findOne({ messageId, e, chatRoomId });
-    //     if (def) {
-    //       console.log(def);
-    //     } else {
-    //       console.log("shit!");
-    //     }
-
-    //let users = await User.findById(req.user.id)
-    // console.log(users)
-    // console.log(users.name)
-    // console.log(req.user.name)
-    // console.log(UserSocket[req.user.name])
     console.log("new message");
     UserSocket[req.user.name].in(chatRoomId).emit("delete_message", { event });
-    //UserSocket[req.user.name].in(chatRoomId).emit("new_message",{event})
-
     res.status(200).send(event);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Server error");
+  }
+};
+
+
+
+exports.edit = async (req, res) => {
+  console.log("controller entered");
+  const { chatRoomId, type, messageId, text,updatedText } = req.body;
+  console.log("before try",chatRoomId,type,messageId,text,updatedText);
+  try {
+    let event = new Event({
+      sender: req.user.id,
+      chatRoomId,
+      messageId,
+      type,
+      text,
+      
+    });
+   // console.log("inside try")
+    
+    console.log("previous text",text);
+    console.log("new text",updatedText);
+    console.log("in controller",event);
+    await Event.findOneAndUpdate(
+      { chatRoomId,messageId, type },
+      {
+       
+        type: "EDIT",
+        text: updatedText,
+      },
+      { new: true }
+    );
+    
+      let event2 = new Event({
+      sender: req.user.id,
+      chatRoomId,
+      messageId,
+      type:"EDIT",
+      text:updatedText,
+    });
+    console.log("emitted event",event2);
+    UserSocket[req.user.name].in(chatRoomId).emit("edit_message", { event:event2 });
+    res.status(200).send(event2);
+    
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Server error");
