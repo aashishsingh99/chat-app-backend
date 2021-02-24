@@ -148,7 +148,7 @@ exports.newEvent = async (req, res) => {
     console.log(req.user.id);
     //let users = await User.findById(req.user.id)
     // console.log(users)
-    // console.log(users.name)
+    
     // console.log(req.user.name)
     // console.log(UserSocket[req.user.name])
     console.log("new message");
