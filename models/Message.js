@@ -25,6 +25,10 @@ const MessageSchema = new Schema({
   media: {
     type: String,
   },
+  read: {
+    type: String,
+    default: "false",
+  },
   date: {
     type: Date,
     default: Date.now,

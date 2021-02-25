@@ -10,61 +10,57 @@ exports.getEvents = async (req, res) => {
   console.log("AAAAASHISH");
   const { chatRoomId } = req.body;
   try {
+    // await Event.findByIdAndUpdate(
+    //   { chatRoomId },
+    //   {
+    //     read: "true",
+    //   },
+    //   { new: true }
+    // );
+    await Event.updateMany(
+      {
+        sender: { $ne: req.user.id },
+        chatRoomId: { $eq: chatRoomId },
+      },
+      {
+        $set: { read: "true" },
+      }
+    );
     const events = await Event.find({ chatRoomId: chatRoomId });
+
+    console.log("events updated ,made all read");
     res.json(events);
   } catch (err) {
     log_and_send_error(err.message, 500, "Server Error");
   }
-  // try {
-  //   if (!timestamp) {
-  //     let events = await Event.aggregate([
-  //       {
-  //         $match: {
-  //           chatRoomId: chatRoomId,
-  //         },
-  //       },
 
-  //       { $sort: { date: 1 } },
-  //       {
-  //         $group: {
-  //           _id: "$messageId",
-  //           sender: { $last: "$sender" },
-  //           text: { $last: "$text" },
-  //           type: { $last: "$type" },
-  //           time: { $last: "$date" },
-  //         },
-  //       },
-  //     ]);
-  //     console.log(events)
+  UserSocket[req.user.name]
+    .to(chatRoomId)
+    .emit("read_message", { chatRoomId: chatRoomId });
+};
+// exports.save_changes = async (req, res) => {
+//   const { chatRoomId } = req.body;
+//   await Event.updateMany(
+//     {
+//       sender: { $ne: req.user.id },
+//       chatRoomId: { $eq: chatRoomId },
+//     },
+//     {
+//       $set: { read: "true" },
+//     }
+//   );
+// };
+exports.read_message = async (req, res) => {
+  const { chatRoomId } = req.body;
 
-  //     res.status(200).send(events);
-  //   } else {
-  //     let events = await Event.aggregate([
-  //       {
-  //         $match: {
-  //           date: { $gt: new Date(timestamp) },
-  //           chatRoomId: chatRoomId,
-  //         },
-  //       },
-
-  //       { $sort: { date: 1 } },
-  //       {
-  //         $group: {
-  //           _id: "$messageId",
-  //           sender: { $last: "$sender" },
-  //           text: { $last: "$text" },
-  //           type: { $last: "$type" },
-  //           time: { $last: "$date" },
-  //         },
-  //       },
-  //     ]);
-
-  //     res.status(200).send(events);
-  //   }
-  // } catch (error) {
-  //   console.error(error.message);
-  //   res.status(500).send("Server error");
-  // }
+  console.log(chatRoomId, "chatRoomId");
+  try {
+    const events = await Event.find({ chatRoomId: chatRoomId });
+    console.log("sending updated events", events);
+    res.json(events);
+  } catch (err) {
+    log_and_send_error(err.message, 500, "Server Error");
+  }
 };
 
 // exports.getEvents = async (req, res) => {
@@ -149,7 +145,7 @@ exports.newEvent = async (req, res) => {
     console.log(req.user.id);
     //let users = await User.findById(req.user.id)
     // console.log(users)
-    
+
     // console.log(req.user.name)
     // console.log(UserSocket[req.user.name])
     console.log("new message");
@@ -193,19 +189,22 @@ exports.online = async (req, res) => {
   const { chat_id } = req.body;
   try {
     //let users = await User.findById(req.user.id)
-    console.log("cchat id",chat_id)
-    const curr_chat = await Chat.findById(chat_id).populate("recipients")
+    console.log("cchat id", chat_id);
+    const curr_chat = await Chat.findById(chat_id).populate("recipients");
     //console.log("name of recipient",curr_chat.recipients[1].name);
-    console.log(req.user.id,curr_chat.recipients[1]._id,'online')
-   const t=UserSocket[(curr_chat.recipients[1]._id===req.user.id ?curr_chat.recipients[0].name : curr_chat.recipients[1].name)];
+    console.log(req.user.id, curr_chat.recipients[1]._id, "online");
+    const t =
+      UserSocket[
+        curr_chat.recipients[1]._id === req.user.id
+          ? curr_chat.recipients[0].name
+          : curr_chat.recipients[1].name
+      ];
     console.log("india");
-   let response=false;
-    if(t===undefined)
-    response=false;
-    else
-    response=true;
-    
-    console.log("response",response);
+    let response = false;
+    if (t === undefined) response = false;
+    else response = true;
+
+    console.log("response", response);
     // console.log("currcchat:",curr_chat);
     // console.log("recipients:",curr_chat.recipients);
     console.log("IN ONLINE CONTROLLER");
@@ -216,11 +215,10 @@ exports.online = async (req, res) => {
   }
 };
 
-
 exports.edit = async (req, res) => {
   console.log("controller entered");
-  const { chatRoomId, type, messageId, text,updatedText } = req.body;
-  console.log("before try",chatRoomId,type,messageId,text,updatedText);
+  const { chatRoomId, type, messageId, text, updatedText } = req.body;
+  console.log("before try", chatRoomId, type, messageId, text, updatedText);
   try {
     let event = new Event({
       sender: req.user.id,
@@ -228,34 +226,33 @@ exports.edit = async (req, res) => {
       messageId,
       type,
       text,
-      
     });
-   // console.log("inside try")
-    
-    console.log("previous text",text);
-    console.log("new text",updatedText);
-    console.log("in controller",event);
+    // console.log("inside try")
+
+    console.log("previous text", text);
+    console.log("new text", updatedText);
+    console.log("in controller", event);
     await Event.findOneAndUpdate(
-      { chatRoomId,messageId, type },
+      { chatRoomId, messageId, type },
       {
-       
         type: "EDIT",
         text: updatedText,
       },
       { new: true }
     );
-    
-      let event2 = new Event({
+
+    let event2 = new Event({
       sender: req.user.id,
       chatRoomId,
       messageId,
-      type:"EDIT",
-      text:updatedText,
+      type: "EDIT",
+      text: updatedText,
     });
-    console.log("emitted event",event2);
-    UserSocket[req.user.name].in(chatRoomId).emit("edit_message", { event:event2 });
+    console.log("emitted event", event2);
+    UserSocket[req.user.name]
+      .in(chatRoomId)
+      .emit("edit_message", { event: event2 });
     res.status(200).send(event2);
-    
   } catch (error) {
     console.error(error.message);
     res.status(500).send("Server error");
