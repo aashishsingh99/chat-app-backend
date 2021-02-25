@@ -126,8 +126,10 @@ exports.newConversation = async (req, res) => {
       // await res.status(200).send(newConvo);
 
       //new one using req
-      
-    console.log(req.socket.id,UserSocket[user_name].id,'test1')
+    
+    console.log("Usersocket details")
+    console.log
+    console.log(req.socket.id,'test1')
      
     await req.socket.join(newConvo._id);
       

@@ -13,4 +13,5 @@ router.post('/getEvents',auth, eventController.getEvents);
 router.post('/',auth, eventController.newEvent);
 router.post('/delete',auth, eventController.delete);
 router.post('/edit',auth, eventController.edit);
+router.post('/online',auth, eventController.online);
 module.exports = router;

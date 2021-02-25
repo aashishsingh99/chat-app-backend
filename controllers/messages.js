@@ -2,6 +2,7 @@ const { validationResult } = require("express-validator");
 const User = require("../models/Message");
 const { log_and_send_error } = require("./error");
 const Event = require("../models/Message");
+const Chat = require("../models/Chat");
 const mongoose = require("mongoose");
 const UserSocket = require("../UserSocket.json");
 
@@ -188,6 +189,32 @@ exports.delete = async (req, res) => {
   }
 };
 
+exports.online = async (req, res) => {
+  const { chat_id } = req.body;
+  try {
+    //let users = await User.findById(req.user.id)
+    console.log("cchat id",chat_id)
+    const curr_chat = await Chat.findById(chat_id).populate("recipients")
+    //console.log("name of recipient",curr_chat.recipients[1].name);
+    console.log(req.user.id,curr_chat.recipients[1]._id,'online')
+   const t=UserSocket[(curr_chat.recipients[1]._id===req.user.id ?curr_chat.recipients[0].name : curr_chat.recipients[1].name)];
+    console.log("india");
+   let response=false;
+    if(t===undefined)
+    response=false;
+    else
+    response=true;
+    
+    console.log("response",response);
+    // console.log("currcchat:",curr_chat);
+    // console.log("recipients:",curr_chat.recipients);
+    console.log("IN ONLINE CONTROLLER");
+    res.status(200).send(response);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Server error");
+  }
+};
 
 
 exports.edit = async (req, res) => {

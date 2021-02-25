@@ -45,8 +45,9 @@ io.on("connection", (socket) => {
     console.log("user logged in")
     console.log(me, socket.id);
     UserSocket[me] = socket;
-    //console.log("this is usertoken")
-    //console.log(UserSocket)
+
+    console.log("this is usertoken")
+    console.log(UserSocket)
     //UserSocket["mang2567o"] = "juice";
     // console.log(UserSocket, "HELLO ABHISHEK2");
 
@@ -55,7 +56,7 @@ io.on("connection", (socket) => {
     //     alert(error);
     //   }
     // });
-
+    //UserSocket[req.user.name].in(chatRoomId).emit("edit_message", { event:event2 });
     // console.log(UserSocket[me],me);
     // dict[me] = socket;
     // console.log("PRINTING USER SOCKET");
@@ -68,7 +69,10 @@ io.on("connection", (socket) => {
       });
       //console.log(socket);
     }
+    
   });
+
+  
   
 
   socket.on("new_message", ({ text, chatRoomId }) => {
@@ -76,6 +80,11 @@ io.on("connection", (socket) => {
     console.log(text);
     console.log(chatRoomId);
     socket.to(chatRoomId).emit("emit_message", { text });
+  });
+  socket.on("typing", ({ chat_typing_id }) => {
+    console.log("Typing....");
+    socket.to(chat_typing_id).emit("showTyping", ({ chat_typing_id }));
+    // socket.manager.sockets.in(chatRoomId).emit("newMessage", { text })
   });
 });
 
