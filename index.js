@@ -13,15 +13,12 @@ const UserSocket = require("./UserSocket.json");
 app.use(express.json());
 app.use(cors());
 
-
 // const socketio=require('socket.io')
 
 // Connect Database
 
-
 // Init middleware
 app.use(express.json({ extended: false }));
-
 
 app.get("/", (req, res) => {
   res.send("working");
@@ -42,12 +39,12 @@ io.on("connection", (socket) => {
   current_socket = socket;
 
   socket.on("join", ({ me, conversation }) => {
-    console.log("user logged in")
+    console.log("user logged in");
     console.log(me, socket.id);
     UserSocket[me] = socket;
 
     //console.log("this is usertoken")
-   // console.log(UserSocket)
+    // console.log(UserSocket)
     //UserSocket["mang2567o"] = "juice";
     // console.log(UserSocket, "HELLO ABHISHEK2");
 
@@ -69,11 +66,10 @@ io.on("connection", (socket) => {
       });
       //console.log(socket);
     }
-    
   });
-
-  
-  
+  socket.on("new_read_message", ({ chatRoomId }) => {
+    socket.to(chatRoomId).emit("read_message", { chatRoomId: chatRoomId });
+  });
 
   socket.on("new_message", ({ text, chatRoomId }) => {
     console.log("new message details");
@@ -83,7 +79,7 @@ io.on("connection", (socket) => {
   });
   socket.on("typing", ({ chat_typing_id }) => {
     console.log("Typing....");
-    socket.to(chat_typing_id).emit("showTyping", ({ chat_typing_id }));
+    socket.to(chat_typing_id).emit("showTyping", { chat_typing_id });
     // socket.manager.sockets.in(chatRoomId).emit("newMessage", { text })
   });
 });
